@@ -5,6 +5,7 @@ from sqlalchemy import text
 from models import db, connect_db, User
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///blogly_test'
+app.config['SQLALCHEMY_ECHO'] = False
 app.config['TESTING'] = True
 
 # db.drop_all()
@@ -14,6 +15,7 @@ class FlaskTests(TestCase):
     
     @classmethod
     def setUpClass(cls):
+        print(f"SQLALCHEMY ECHO >>>>>>>>>>>>>: {app.config['SQLALCHEMY_ECHO']}")
         with app.app_context():
             db.drop_all()
             db.create_all()
@@ -30,8 +32,9 @@ class FlaskTests(TestCase):
         db.session.commit()
 
     def tearDown(self):
-
-        db.session.rollback()   
+        db.session.rollback()
+        db.session.remove()
+        self.app_context.pop()   
 
     def test_home(self):
         """testing home route redirect"""
@@ -70,5 +73,7 @@ class FlaskTests(TestCase):
             res = client.post('/users/1/edit',data=edit_user,follow_redirects=True)
             user = db.session.get(User, 1)
             self.assertEqual(res.status_code, 200)
-            self.assertEqual(user.first_name,'test_edit_first_name')                 
+            self.assertEqual(user.first_name,'test_edit_first_name')    
+            
+
    
