@@ -24,6 +24,8 @@ class User(db.Model):
         self.last_name = last_name
         self.image_url = image_url or 'https://winaero.com/blog/wp-content/uploads/2018/08/Windows-10-user-icon-big.png'
 
+    # posts = db.relationship('Post')
+
 class Post(db.Model):
     __tablename__ = 'posts'
 
@@ -31,4 +33,6 @@ class Post(db.Model):
     title = db.Column(db.String(20), nullable=False) 
     content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=func.now(), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id',ondelete= 'CASCADE'), nullable=False)
+
+    user = db.relationship('User', backref='posts')

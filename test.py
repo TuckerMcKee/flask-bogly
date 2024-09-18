@@ -2,26 +2,21 @@ from unittest import TestCase
 from app import app
 from flask import session
 from sqlalchemy import text
-from models import db, connect_db, User
+from models import db, connect_db, User, Post
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///blogly_test'
-app.config['SQLALCHEMY_ECHO'] = False
-app.config['TESTING'] = True
 
-# db.drop_all()
-# db.create_all()
 
 class FlaskTests(TestCase):
     
     @classmethod
     def setUpClass(cls):
-        print(f"SQLALCHEMY ECHO >>>>>>>>>>>>>: {app.config['SQLALCHEMY_ECHO']}")
         with app.app_context():
             db.drop_all()
             db.create_all()
+               
 
     def setUp(self):
-        """create test user"""
+        """create test user and test post"""
         self.app_context = app.app_context() 
         self.app_context.push()
         User.query.delete()
@@ -29,11 +24,15 @@ class FlaskTests(TestCase):
         user = User(first_name='James', last_name='Madison',
                     image_url='https://science.nasa.gov/wp-content/uploads/2023/05/sun-cartoon-crop.png?w=4096&format=png&crop=1')
         db.session.add(user)
+        Post.query.delete()
+        db.session.execute(text('ALTER SEQUENCE posts_id_seq RESTART WITH 1'))
+        post = Post(title='test_post', content='test_content', user_id=1)
+        db.session.add(post)
         db.session.commit()
 
     def tearDown(self):
         db.session.rollback()
-        db.session.remove()
+        db.session.remove() 
         self.app_context.pop()   
 
     def test_home(self):
@@ -73,7 +72,30 @@ class FlaskTests(TestCase):
             res = client.post('/users/1/edit',data=edit_user,follow_redirects=True)
             user = db.session.get(User, 1)
             self.assertEqual(res.status_code, 200)
-            self.assertEqual(user.first_name,'test_edit_first_name')    
+            self.assertEqual(user.first_name,'test_edit_first_name')
+
+    def test_create_new_post(self):
+        """testing post route for creating new post"""
+        with app.test_client() as client:
+            new_post = {'title': 'test_title',
+                        'content':'test_content'}
+            res = client.post('/users/1/posts/new',data=new_post,follow_redirects=True)
+            html = res.get_data(as_text=True)
+
+            self.assertEqual(res.status_code, 200)
+            self.assertIn('test_title',html)
+
+    def test_update_post_data(self):
+        """testing post route for editing post data"""
+        with app.test_client() as client:
+            edit_post = {'title': 'edit_title',
+                        'content':'content'}
+            res = client.post('/posts/1/edit',data=edit_post,follow_redirects=True)
+            html = res.get_data(as_text=True)
+            self.assertEqual(res.status_code, 200)
+            self.assertIn('edit_title',html)               
+
+
             
 
    

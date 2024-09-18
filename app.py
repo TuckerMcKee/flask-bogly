@@ -5,13 +5,14 @@ from flask_debugtoolbar import DebugToolbarExtension
 from models import db, connect_db, User, Post
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///blogly'
+# ***************************************change to 'postgresql:///blogly' for main app, this db is for testing
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///blogly_test' 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_ECHO'] = True
+app.config['SQLALCHEMY_ECHO'] = False
 app.config['SECRET_KEY'] = 'secretkey'
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
-app.debug = True
-debug = DebugToolbarExtension(app)
+# app.debug = True
+# debug = DebugToolbarExtension(app)
 
 connect_db(app)
 with app.app_context():
@@ -92,7 +93,8 @@ def create_new_post(user_id):
     new_post = Post(title=title,content=content,user_id=user_id)
     db.session.add(new_post)
     db.session.commit()
-    return render_template('userdetail.html',user=User.query.get(user_id))
+    posts = Post.query.filter_by(user_id=user_id).all()
+    return render_template('userdetail.html',user=User.query.get(user_id),posts=posts)
 
 @app.route('/posts/<int:post_id>')
 def post_detail(post_id):
