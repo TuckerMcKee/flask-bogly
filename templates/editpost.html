@@ -9,6 +9,13 @@
     <input type="text" name="title">
     <label for="content">Content</label>
     <input type="text" name="content">
+    {% for tag in tags %}
+    <label>
+        <input type="checkbox" name="tags" value="{{tag.id}}">
+        {{tag.name}}
+    </label>
+    <br>
+    {% endfor %}
     <button type="submit">Edit</button>
 </form>
 <form action="/users" method="get">

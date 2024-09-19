@@ -30,9 +30,25 @@ class Post(db.Model):
     __tablename__ = 'posts'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True) 
-    title = db.Column(db.String(20), nullable=False) 
+    title = db.Column(db.String(40), nullable=False) 
     content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=func.now(), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id',ondelete= 'CASCADE'), nullable=False)
 
     user = db.relationship('User', backref='posts')
+
+class Tag(db.Model):
+    __tablename__ = 'tags'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True) 
+    name = db.Column(db.String(20), unique=True, nullable=False) 
+
+    post_tag = db.relationship('PostTag', backref='tags', passive_deletes=True)  
+
+class PostTag(db.Model):
+    __tablename__ = 'post_tags'
+
+    post_id = db.Column(db.Integer, db.ForeignKey('posts.id',ondelete= 'CASCADE'), primary_key=True) 
+    tag_id = db.Column(db.Integer, db.ForeignKey('tags.id',ondelete= 'CASCADE'), primary_key=True)  
+
+    tag = db.relationship('Tag', backref='post_tags')      
